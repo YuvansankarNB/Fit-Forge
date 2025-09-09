@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="fitForgeApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FitForge - Profile</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; color: #333; line-height: 1.6; }
+    .header { background-color: #2c3e50; color: white; padding: 1rem 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+    .logo { font-size: 1.8rem; font-weight: bold; color: #e74c3c; }
+    .nav-menu { display: flex; list-style: none; gap: 2rem; }
+    .nav-menu a { color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 5px; transition: background-color 0.3s; }
+    .nav-menu a:hover, .nav-menu a.active { background-color: #e74c3c; }
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
+    .page-title { font-size: 2rem; margin-bottom: 2rem; color: #2c3e50; text-align: center; }
+    .profile-header { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem; text-align: center; }
+    .profile-avatar { width: 120px; height: 120px; border-radius: 50%; background-color: #e74c3c; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: white; margin: 0 auto 1rem; }
+    .profile-name { font-size: 1.8rem; color: #2c3e50; margin-bottom: 0.5rem; }
+    .profile-email { color: #666; margin-bottom: 1rem; }
+    .stat-value { font-size: 1.5rem; font-weight: bold; color: #e74c3c; }
+    .card { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-left: 4px solid #e74c3c; }
+    .form-group { margin: 1rem 0; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 1rem; }
+    .btn { background-color: #e74c3c; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s; width: 100%; }
+    .achievement-item { display: flex; align-items: center; gap: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 5px; margin: 0.5rem 0; }
+  </style>
+</head>
+<body ng-controller="ProfileCtrl">
+  <header class="header">
+    <div class="nav-container">
+      <div class="logo">FitForge</div>
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="home.html">Dashboard</a></li>
+          <li><a href="work.html">Workouts</a></li>
+          <li><a href="pro.html">Progress</a></li>
+          <li><a href="nutri.html">Nutrition</a></li>
+          <li><a href="cls.html">Classes</a></li>
+          <li><a href="money.html">Membership</a></li>
+          <li><a href="prof.html" class="active">Profile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 class="page-title">My Profile</h1>
+
+    <div class="profile-header">
+      <div class="profile-avatar">{{profile.initials}}</div>
+      <div class="profile-name">{{profile.name}}</div>
+      <div class="profile-email">{{profile.email}}</div>
+    </div>
+
+    <div class="card">
+      <h3>Personal Information</h3>
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" ng-model="profile.name">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" ng-model="profile.email">
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" ng-model="profile.phone">
+      </div>
+      <button class="btn" ng-click="savePersonalInfo()">Save Changes</button>
+    </div>
+
+    <div class="card">
+      <h3>Fitness Information</h3>
+      <div class="form-group">
+        <label>Height (cm)</label>
+        <input type="number" ng-model="fitness.height">
+      </div>
+      <div class="form-group">
+        <label>Current Weight (kg)</label>
+        <input type="number" ng-model="fitness.weight">
+      </div>
+      <button class="btn" ng-click="saveFitnessInfo()">Update Fitness Info</button>
+    </div>
+  </main>
+
+  <script>
+    var app = angular.module("fitForgeApp", []);
+    app.controller("ProfileCtrl", function($scope) {
+      $scope.profile = { name: "John Doe", email: "john.doe@email.com", initials: "JD" };
+      $scope.fitness = { height: 175, weight: 72 };
+
+      $scope.savePersonalInfo = function() {
+        alert("Personal information saved successfully!");
+      };
+      $scope.saveFitnessInfo = function() {
+        alert("Fitness information updated successfully!");
+      };
+    });
+  </script>
+</body>
+</html>

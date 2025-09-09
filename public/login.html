@@ -1,0 +1,92 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Fit Forge - Login</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: white; font-family: Arial, Helvetica, sans-serif; height: 100%; }
+    .login-container { display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .login-box { background-color: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 320px; padding: 36px; }
+    .login-box form input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; }
+    .login-box form button { width: 100%; color: white; padding: 10px; background-color: rgb(41,114,179); border: none; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
+    .login-box form button:hover { background-color: rgb(49, 49, 211); }
+    .login-box p { text-align: center; margin-top: 8px; }
+    .login-box p a { color: blue; text-decoration: none; }
+    .login-box h2 { margin-bottom: 14px; text-align: center; }
+    .welcome-message { text-align: center; color: green; font-weight: bold; margin-top: 10px; }
+    .error-message { text-align: center; color: red; margin-bottom: 8px; min-height: 1.2em; }
+    .loading { opacity: 0.8; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div class="login-container" ng-app="loginApp" ng-controller="LoginController">
+    <section class="login-box" ng-class="{'loading': loading}">
+      <h2>Login</h2>
+
+      <p class="welcome-message" ng-if="isLoggedIn">Welcome {{ username | uppercase }}!</p>
+      <p class="error-message" ng-if="loginError">{{ loginError }}</p>
+
+      <form ng-submit="login()" novalidate>
+        <input type="text" name="username" placeholder="Enter the Username" ng-model="username" required />
+        <input type="password" name="password" placeholder="Enter the Password" ng-model="password" required />
+
+        <button type="submit" ng-disabled="loading">
+          {{ loading ? 'Logging in...' : 'Login' }}
+        </button>
+
+        <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    var app = angular.module('loginApp', []);
+    app.controller('LoginController', function ($scope, $http) {
+      $scope.username = '';
+      $scope.password = '';
+      $scope.isLoggedIn = false;
+      $scope.loginError = '';
+      $scope.loading = false;
+
+      $scope.login = function () {
+        $scope.loading = true;
+        $scope.loginError = '';
+        $http.post('/api/login', {
+          username: $scope.username,
+          password: $scope.password
+        })
+        .then(function (res) {
+          if (res && res.data && res.data.id) {
+            localStorage.setItem('userId', res.data.id);
+            localStorage.setItem('username', res.data.username || $scope.username);
+
+            $scope.isLoggedIn = true;
+            $scope.loginError = '';
+            $scope.password = '';
+            setTimeout(function () {
+              window.location.href = 'home.html';
+            }, 600);
+          } else {
+            $scope.loginError = 'Unexpected server response';
+          }
+        })
+        .catch(function (err) {
+          try {
+            $scope.loginError = (err.data && err.data.message) ? err.data.message : (err.statusText || 'Login failed');
+          } catch (e) {
+            $scope.loginError = 'Login failed';
+          }
+          $scope.isLoggedIn = false;
+          $scope.password = '';
+          $scope.$applyAsync();
+        })
+        .finally(function () {
+          $scope.loading = false;
+        });
+      };
+    });
+  </script>
+</body>
+</html>

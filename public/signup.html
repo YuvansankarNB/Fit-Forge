@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html lang="en" ng-app="SignupApp">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Fit Forge - Sign Up</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <style>
+      *{ margin:0; padding:0; box-sizing: border-box; }
+      body{ background-color:white; font-family:Arial, Helvetica, sans-serif; height:100%; }
+      .login-container{ display:flex; justify-content:center; align-items:center; height:100vh; }
+      .login-box{ background-color:white; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); width:320px; padding:36px; }
+      .login-box form input{ width:100%; padding:10px; margin:10px 0; border-radius:8px; border:1px solid #ccc; }
+      .login-box form button{ width:100%; color:white; padding:10px; background-color:rgb(41,114,179); border:none; border-radius:8px; margin-bottom:10px; cursor:pointer; }
+      .login-box form button:hover{ background-color:rgb(49,49,211); }
+      .login-box p{ text-align:center; margin-top:8px; }
+      .login-box p a{ color:blue; text-decoration:none; }
+      .login-box h2{ margin-bottom:14px; text-align:center; }
+      .register-message{ text-align:center; color:green; font-weight:bold; margin-top:10px; min-height:1.2em; }
+      .error-message{ text-align:center; color:#c00; font-weight:bold; margin-top:10px; min-height:1.2em; }
+    </style>
+  </head>
+  <body ng-controller="SignupController">
+    <div class="login-container">
+      <section class="login-box" ng-class="{'loading': loading}">
+        <h2>Sign Up</h2>
+
+        <p class="register-message" ng-if="successMsg" ng-bind="successMsg"></p>
+        <p class="error-message" ng-if="errorMsg" ng-bind="errorMsg"></p>
+
+        <form ng-submit="signup()" novalidate>
+          <input type="text" name="username" placeholder="Enter the Username" ng-model="form.username" required />
+
+          <input type="password" name="password" placeholder="Enter the Password (min 6 chars)" ng-model="form.password" minlength="6" required />
+
+          <button type="submit" ng-disabled="loading">
+            {{ loading ? 'Signing up...' : 'Sign up' }}
+          </button>
+
+          <p>Already have an account? <a href="login.html">Login here</a></p>
+        </form>
+      </section>
+    </div>
+
+    <script>
+      var app = angular.module('SignupApp', []);
+      app.controller('SignupController', function($scope, $http) {
+        $scope.form = { username: '', password: '' };
+        $scope.loading = false;
+        $scope.successMsg = '';
+        $scope.errorMsg = '';
+
+        $scope.signup = function() {
+          $scope.loading = true;
+          $scope.successMsg = '';
+          $scope.errorMsg = '';
+
+          $http.post('/api/signup', $scope.form)
+            .then(function(res) {
+              if (res && res.data && res.data.id) {
+                $scope.successMsg = 'Registered ' + res.data.username + ' — redirecting...';
+                localStorage.setItem('userId', res.data.id);
+                localStorage.setItem('username', res.data.username || $scope.form.username);
+                $scope.form.password = '';
+                setTimeout(function() {
+                  window.location.href = 'home.html';
+                }, 800);
+              } else {
+                $scope.errorMsg = 'Unexpected server response';
+              }
+            })
+            .catch(function(err) {
+              $scope.errorMsg = (err.data && err.data.message) ? err.data.message : 'Signup failed';
+              $scope.form.password = '';
+            })
+            .finally(function() {
+              $scope.loading = false;
+              $scope.$applyAsync();
+            });
+        };
+      });
+    </script>
+  </body>
+</html>

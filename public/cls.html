@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="fitForgeApp">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FitForge - Classes</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; color: #333; line-height: 1.6; }
+    .header { background-color: #2c3e50; color: white; padding: 1rem 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+    .logo { font-size: 1.8rem; font-weight: bold; color: #e74c3c; }
+    .nav-menu { display: flex; list-style: none; gap: 2rem; }
+    .nav-menu a { color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 5px; transition: background-color 0.3s; }
+    .nav-menu a:hover, .nav-menu a.active { background-color: #e74c3c; }
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
+    .page-title { font-size: 2rem; margin-bottom: 2rem; color: #2c3e50; text-align: center; }
+    .schedule-tabs { display: flex; justify-content: center; margin-bottom: 2rem; background: white; border-radius: 10px; padding: 0.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .tab-button { background: none; border: none; padding: 1rem 2rem; cursor: pointer; border-radius: 8px; transition: all 0.3s; font-size: 1rem; }
+    .tab-button.active { background-color: #e74c3c; color: white; }
+    .class-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+    .class-card { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-left: 4px solid #e74c3c; transition: transform 0.3s; }
+    .class-time { font-size: 1.2rem; font-weight: bold; color: #e74c3c; margin-bottom: 0.5rem; }
+    .class-name { font-size: 1.4rem; color: #2c3e50; margin-bottom: 0.5rem; }
+    .class-instructor { color: #666; margin-bottom: 1rem; }
+    .class-details { background-color: #f8f9fa; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+    .class-spots { color: #27ae60; font-weight: bold; margin-bottom: 1rem; }
+    .class-spots.limited { color: #f39c12; }
+    .class-spots.full { color: #e74c3c; }
+    .btn { background-color: #e74c3c; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.3s; width: 100%; }
+    .btn-secondary { background-color: #3498db; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; }
+    .my-classes { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-top: 2rem; }
+    .booked-class { background-color: #f8f9fa; padding: 1rem; border-radius: 5px; margin: 1rem 0; border-left: 3px solid #27ae60; }
+  </style>
+</head>
+<body ng-controller="ClassesCtrl">
+
+  <header class="header">
+    <div class="nav-container">
+      <div class="logo">FitForge</div>
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="home.html">Dashboard</a></li>
+          <li><a href="work.html">Workouts</a></li>
+          <li><a href="pro.html">Progress</a></li>
+          <li><a href="nutri.html">Nutrition</a></li>
+          <li><a href="cls.html" class="active">Classes</a></li>
+          <li><a href="money.html">Membership</a></li>
+          <li><a href="prof.html">Profile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 class="page-title">Fitness Classes</h1>
+
+    <div class="schedule-tabs">
+      <button class="tab-button" ng-class="{'active': selectedDay=='today'}" ng-click="setDay('today')">Today</button>
+      <button class="tab-button" ng-class="{'active': selectedDay=='tomorrow'}" ng-click="setDay('tomorrow')">Tomorrow</button>
+      <button class="tab-button" ng-class="{'active': selectedDay=='week'}" ng-click="setDay('week')">This Week</button>
+    </div>
+
+    <div class="class-grid">
+      <div class="class-card" ng-repeat="cls in classes[selectedDay] track by $index">
+        <div class="class-time" ng-bind="cls.time"></div>
+        <div class="class-name" ng-bind="cls.name"></div>
+        <div class="class-instructor">Instructor: {{cls.instructor}}</div>
+        <div class="class-details">
+          <strong>Duration:</strong> {{cls.duration}} minutes<br>
+          <strong>Level:</strong> {{cls.level}}<br>
+          <strong>Location:</strong> {{cls.location}}
+        </div>
+        <div class="class-spots" ng-class="{'limited': cls.spots<=4 && cls.spots>0, 'full': cls.spots===0}">
+          {{cls.spotText}}
+        </div>
+        <button class="btn" ng-disabled="cls.spots==0" ng-click="bookClass(cls)">
+          {{cls.spots==0 ? 'Join Waitlist' : 'Book Class'}}
+        </button>
+      </div>
+    </div>
+
+    <div class="my-classes">
+      <h3>My Booked Classes</h3>
+      <div class="booked-class" ng-repeat="b in bookedClasses track by b._id">
+        <div class="booked-class-name">{{b.name}}</div>
+        <div class="booked-class-details">{{b.time}} with {{b.instructor}}</div>
+        <button class="btn-secondary" ng-click="cancelClass(b)">Cancel Booking</button>
+      </div>
+      <div ng-if="bookedClasses.length==0"><p>No classes booked yet.</p></div>
+    </div>
+  </main>
+
+  <script>
+    var app = angular.module("fitForgeApp", []);
+
+    app.service("ClassService", function() {
+      this.getClasses = function() {
+        return {
+          today: [
+            {name:"Morning Yoga", time:"7:00 AM", instructor:"Sarah Johnson", duration:60, level:"All levels", location:"Studio A", spots:12, spotText:"12 spots available"},
+            {name:"HIIT Training", time:"10:00 AM", instructor:"Mike Wilson", duration:45, level:"Intermediate", location:"Main Gym", spots:3, spotText:"3 spots available"},
+            {name:"Lunch Break Pilates", time:"12:00 PM", instructor:"Emma Davis", duration:30, level:"Beginner", location:"Studio B", spots:8, spotText:"8 spots available"},
+            {name:"Strength & Conditioning", time:"6:00 PM", instructor:"Lisa Chen", duration:75, level:"Advanced", location:"Weight Room", spots:5, spotText:"5 spots available"},
+            {name:"Zumba Dance", time:"7:30 PM", instructor:"Maria Rodriguez", duration:60, level:"All levels", location:"Studio A", spots:0, spotText:"Class Full - Waitlist Available"}
+          ],
+          tomorrow: [
+            {name:"Early Bird Cardio", time:"6:30 AM", instructor:"Tom Anderson", duration:45, level:"All levels", location:"Cardio Room", spots:15, spotText:"15 spots available"},
+            {name:"Beginner Weightlifting", time:"9:00 AM", instructor:"Jake Miller", duration:60, level:"Beginner", location:"Weight Room", spots:10, spotText:"10 spots available"},
+            {name:"Boxing Fundamentals", time:"5:00 PM", instructor:"Alex Thompson", duration:50, level:"Beginner", location:"Boxing Area", spots:4, spotText:"4 spots available"}
+          ],
+          week: [
+            {name:"CrossFit", time:"Monday - 7:00 PM", instructor:"Ryan Clark", duration:60, level:"Intermediate/Advanced", location:"CrossFit Box", spots:8, spotText:"8 spots available"},
+            {name:"Spin Class", time:"Wednesday - 6:00 PM", instructor:"Kelly White", duration:45, level:"All levels", location:"Spin Studio", spots:12, spotText:"12 spots available"},
+            {name:"Power Yoga", time:"Friday - 7:00 AM", instructor:"Sarah Johnson", duration:75, level:"Intermediate", location:"Studio A", spots:6, spotText:"6 spots available"},
+            {name:"Functional Training", time:"Saturday - 10:00 AM", instructor:"Mike Wilson", duration:60, level:"All levels", location:"Functional Area", spots:10, spotText:"10 spots available"}
+          ]
+        };
+      };
+    });
+
+    app.controller("ClassesCtrl", function($scope, ClassService) {
+      $scope.classes = ClassService.getClasses();
+      $scope.selectedDay = "today";
+      $scope.bookedClasses = [];
+
+      $scope.init = function() {
+        $scope.userId = localStorage.getItem("userId");
+        if ($scope.userId) {
+          fetch("/api/classes/" + $scope.userId)
+            .then(res => res.json())
+            .then(data => {
+              if (Array.isArray(data)) {
+                $scope.$apply(function() { $scope.bookedClasses = data; });
+              }
+            })
+            .catch(err => console.error("Error fetching bookings:", err));
+        }
+      };
+
+      $scope.setDay = function(day) { $scope.selectedDay = day; };
+
+      $scope.bookClass = function(cls) {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          alert("You must be logged in to book classes.");
+          return;
+        }
+
+        const payload = {
+          userId: userId,
+          name: cls.name,
+          time: cls.time,
+          instructor: cls.instructor,
+          spots: cls.spots
+        };
+
+        fetch("/api/classes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        })
+        .then(async res => {
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || JSON.stringify(data));
+          return data;
+        })
+        .then(savedBooking => {
+          $scope.$apply(function() {
+            $scope.bookedClasses.push(savedBooking);
+            cls.spots = (typeof cls.spots === "number") ? cls.spots - 1 : 0;
+            cls.spotText = cls.spots === 0 ? "Class Full - Waitlist Available" : cls.spots + " spots available";
+          });
+          alert("Successfully booked " + cls.name + " at " + cls.time);
+        })
+        .catch(err => {
+          console.error("Booking error:", err);
+          alert("Error booking class: " + err.message);
+        });
+      };
+
+      $scope.cancelClass = function(booking) {
+        if (!booking || !booking._id) {
+          alert("Cannot cancel booking (missing id).");
+          return;
+        }
+        fetch("/api/classes/" + booking._id, { method: "DELETE" })
+          .then(async res => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || JSON.stringify(data));
+            $scope.$apply(function() {
+              const idx = $scope.bookedClasses.findIndex(b => b._id === booking._id);
+              if (idx > -1) $scope.bookedClasses.splice(idx, 1);
+              ['today','tomorrow','week'].forEach(day => {
+                $scope.classes[day].forEach(c => {
+                  if (c.name === booking.name && c.time === booking.time && c.instructor === booking.instructor) {
+                    c.spots = (typeof c.spots === "number") ? c.spots + 1 : 1;
+                    c.spotText = c.spots + " spots available";
+                  }
+                });
+              });
+            });
+            alert("Cancelled booking for " + booking.name);
+          })
+          .catch(err => {
+            console.error("Cancel booking error:", err);
+            alert("Error cancelling booking: " + err.message);
+          });
+      };
+
+      $scope.init();
+    });
+  </script>
+</body>
+</html>

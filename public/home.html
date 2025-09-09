@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="fitForgeApp">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FitForge - Dashboard</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <style>
+    /* (styles same as before) */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background-color: #f5f5f5; color: #333; line-height: 1.6; }
+    .header { background-color: #2c3e50; color: white; padding: 1rem 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .nav-container { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+    .logo { font-size: 1.8rem; font-weight: bold; color: #e74c3c; }
+    .nav-menu { display: flex; list-style: none; gap: 2rem; }
+    .nav-menu a { color: white; text-decoration: none; padding: 0.5rem 1rem; border-radius: 5px; transition: background-color 0.3s; }
+    .nav-menu a:hover, .nav-menu a.active { background-color: #e74c3c; }
+    .container { max-width: 1200px; margin: 2rem auto; padding: 0 20px; }
+    .page-title { font-size: 2rem; margin-bottom: 2rem; color: #2c3e50; text-align: center; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+    .card { background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-left: 4px solid #e74c3c; }
+    .card h3 { color: #2c3e50; margin-bottom: 1rem; font-size: 1.3rem; }
+    .stat-number { font-size: 2.5rem; font-weight: bold; color: #e74c3c; margin: 0.5rem 0; }
+    .stat-label { color: #666; font-size: 0.9rem; }
+    .btn { background-color: #e74c3c; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 1rem; text-decoration: none; display: inline-block; text-align: center; transition: background-color 0.3s; }
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0; }
+    .quick-action { background: white; padding: 1.5rem; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .bmi-calculator { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 2rem 0; }
+    #bmi-result { margin-top: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 5px; text-align: center; font-size: 1.1rem; }
+  </style>
+</head>
+<body ng-controller="DashboardCtrl">
+
+  <header class="header">
+    <div class="nav-container">
+      <div class="logo">FitForge</div>
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="home.html" class="active">Dashboard</a></li>
+          <li><a href="work.html">Workouts</a></li>
+          <li><a href="pro.html">Progress</a></li>
+          <li><a href="nutri.html">Nutrition</a></li>
+          <li><a href="cls.html">Classes</a></li>
+          <li><a href="money.html">Membership</a></li>
+          <li><a href="prof.html">Profile</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h1 class="page-title">Welcome to FitForge</h1>
+
+    <div class="card-grid">
+      <div class="card">
+        <h3>Today's Activity</h3>
+        <div class="stat-number" ng-bind="today.workouts"></div>
+        <div class="stat-label">Workouts Completed</div>
+        <div class="stat-number" ng-bind="today.calories"></div>
+        <div class="stat-label">Calories Burned</div>
+      </div>
+
+      <div class="card">
+        <h3>This Week</h3>
+        <div class="stat-number" ng-bind="week.totalWorkouts"></div>
+        <div class="stat-label">Total Workouts</div>
+        <div class="stat-number" ng-bind="week.hours"></div>
+        <div class="stat-label">Hours Trained</div>
+      </div>
+
+      <div class="card">
+        <h3>Monthly Goal</h3>
+        <div class="stat-number" ng-bind="month.progress + '%'"></div>
+        <div class="stat-label">Progress Complete</div>
+        <div class="stat-number" ng-bind="month.workouts"></div>
+        <div class="stat-label">Workouts Done</div>
+      </div>
+    </div>
+
+    <div class="quick-actions">
+      <div class="quick-action" ng-repeat="action in quickActions">
+        <h4 ng-bind="action.title"></h4>
+        <p ng-bind="action.desc"></p>
+        <a ng-href="{{action.link}}" class="btn" ng-bind="action.button"></a>
+      </div>
+    </div>
+
+    <div class="bmi-calculator">
+      <h3>Quick BMI Calculator</h3>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label for="height">Height (cm)</label>
+          <input type="number" id="height" ng-model="height" placeholder="Enter height">
+        </div>
+        <div class="form-group">
+          <label for="weight">Weight (kg)</label>
+          <input type="number" id="weight" ng-model="weight" placeholder="Enter weight">
+        </div>
+      </div>
+      <button class="btn" ng-click="calculateBMI()">Calculate BMI</button>
+      <div id="bmi-result">
+        <strong ng-bind="'Your BMI: ' + bmi"></strong><br>
+        <span ng-style="{'color': bmiColor, 'font-weight':'bold'}" ng-bind="bmiCategory"></span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    var app = angular.module("fitForgeApp", []);
+    app.controller("DashboardCtrl", function($scope) {
+      $scope.today = { workouts: 0, calories: 0 };
+      $scope.week = { totalWorkouts: 0, hours: 0 };
+      $scope.month = { progress: 0, workouts: "0/0" };
+
+      $scope.quickActions = [
+        { title: "Start Workout", desc: "Begin your training session", button: "Go to Workouts", link: "work.html" },
+        { title: "Track Progress", desc: "View your fitness journey", button: "View Progress", link: "pro.html" },
+        { title: "Book Class", desc: "Join a group fitness class", button: "Book Now", link: "cls.html" },
+        { title: "Meal Planning", desc: "Track your nutrition", button: "Plan Meals", link: "nutri.html" }
+      ];
+
+      $scope.height = null;
+      $scope.weight = null;
+      $scope.bmi = "";
+      $scope.bmiCategory = "";
+      $scope.bmiColor = "#333";
+
+      $scope.calculateBMI = function() {
+        const h = Number($scope.height);
+        const w = Number($scope.weight);
+        if (h > 0 && w > 0) {
+          var heightInM = h / 100;
+          var bmiValue = +(w / (heightInM * heightInM)).toFixed(1);
+          $scope.bmi = bmiValue;
+
+          if (bmiValue < 18.5) {
+            $scope.bmiCategory = "Underweight";
+            $scope.bmiColor = "#3498db";
+          } else if (bmiValue < 25) {
+            $scope.bmiCategory = "Normal Weight";
+            $scope.bmiColor = "#27ae60";
+          } else if (bmiValue < 30) {
+            $scope.bmiCategory = "Overweight";
+            $scope.bmiColor = "#f39c12";
+          } else {
+            $scope.bmiCategory = "Obese";
+            $scope.bmiColor = "#e74c3c";
+          }
+        } else {
+          $scope.bmi = "";
+          $scope.bmiCategory = "Please enter both height and weight";
+          $scope.bmiColor = "#e74c3c";
+        }
+      };
+
+      // init: fetch some stats if logged in
+      $scope.init = function() {
+        $scope.userId = localStorage.getItem("userId");
+        if (!$scope.userId) return;
+
+        // fetch meals for today and sum calories (example)
+        fetch("/api/meals/" + $scope.userId)
+          .then(r => r.json())
+          .then(meals => {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
+            const todaysMeals = (meals || []).filter(m => {
+              const d = new Date(m.date);
+              return d >= today && d < tomorrow;
+            });
+            const cal = todaysMeals.reduce((s, m) => s + (m.calories || 0), 0);
+            $scope.$apply(function() { $scope.today.calories = cal; $scope.today.workouts = $scope.today.workouts || 0; });
+          })
+          .catch(err => console.error("Error fetching meals:", err));
+
+        // fetch classes count this week
+        fetch("/api/classes/" + $scope.userId)
+          .then(r => r.json())
+          .then(classes => {
+            $scope.$apply(function() { $scope.week.totalWorkouts = Array.isArray(classes) ? classes.length : 0; });
+          })
+          .catch(err => console.error("Error fetching classes:", err));
+      };
+
+      $scope.init();
+    });
+  </script>
+</body>
+</html>
